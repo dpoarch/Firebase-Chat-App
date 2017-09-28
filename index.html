@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Firebase Chat app</title>
+<style type="text/css">
+	body{
+		font-family:sans-serif;
+		font-size: 12px;
+	}
+	#chat{
+		display:none;
+	    margin: 0 auto;
+	    width: 341px;
+	}
+	#chatbox{
+	    height: 200px;
+	    width: 300px;
+	    background-color: #333945;
+	    margin-top: 20px;
+        padding: 20px;
+		overflow: auto;
+		color: #fff;
+		margin: 0px;
+	}
+	#login{
+		display:none;
+	}
+	span{
+		color: #7e878e;
+	}
+	.row {
+	    padding: 10px 0px 10px 0px;
+	}
+	.head{
+        width: 300px;
+	    height: 70px;
+	    background-color: #2c303b;
+	    padding: 20px;
+	    text-align: center;
+	}
+	#message {
+	    margin: 0px;
+	    width: 240px;
+	    height: 19px;
+	    padding: 5px;
+	    background-color: #333945;
+	    border: none;
+	    color: #fff;
+	    outline: none;
+	}
+	.footer{
+		 width: 300px;
+	    padding: 20px;
+    	background-color: #2c303b;
+	}
+	.send{
+		padding: 7px;
+	    background-color: dimgrey;
+	    color: #fff;
+	    border: none;
+	    margin-left: -3px;
+	    outline:none;
+	}
+	.logout{
+		background-color: #900000;
+	    border: none;
+	    border-radius: 20px;
+	    padding: 5px 10px;
+	    color: #fff;
+	    font-size: 11px;
+	    font-weight: bold;
+	}
+	h2{
+	    margin: 0px;
+    	color: #fff;
+	}
+	#user{
+	    color: #7e878e;
+    	margin: 7px;
+	}
+	#login{
+	    display: block;
+	    width: 340px;
+	    margin: 0 auto;
+	    background-color: #2c303b;
+	    text-align: center;
+	}
+	#loginbtn{
+	    border: none;
+	    padding: 10px 20px;
+	    background-color: #18de00;
+	    color: #fff;
+	    border-radius: 3px;
+	    margin: 20px;
+	}
+	#email, #password{
+		margin: 12px 0px;
+	    width: 280px;
+	    height: 22px;
+	    padding: 5px;
+        border: none;
+	}
+	.title{
+		padding: 25px;
+	}
+</style>
+<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAdFxHc2FqOvXFL3jJWBmwCis66wNUTrkc",
+    authDomain: "riotjs-firebase-chatapp.firebaseapp.com",
+    databaseURL: "https://riotjs-firebase-chatapp.firebaseio.com",
+    projectId: "riotjs-firebase-chatapp",
+    storageBucket: "riotjs-firebase-chatapp.appspot.com",
+    messagingSenderId: "797853056869"
+  };
+</script>
+<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-database.js"></script>
+</head>
+<body>
+	<div id="login">
+		<h2 class="title">Chap App Login</h2>
+		<div><input type="text" name="username" id="email" placeholder="Enter Email"></div>
+		<div><input type="password" name="password" id="password" placeholder="Enter Password"></div>
+		<div><input type="submit" value="Login" id="loginbtn" onclick="login()"></div>
+	</div>
+	<div id="chat">
+		<div class="head">
+			<h2>Chat App</h2>
+			<div id="user"></div>
+			<button onclick="logout()" class="logout">Sign Out</button>
+		</div>
+		<div id="chatbox">
+
+		</div>
+		<div class="footer">
+			<input type="text" name="message" id="message">
+			<input type="submit" class="send" value="send" onclick="sendMessage()">
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	
+// Initialize the default app
+var defaultApp = firebase.initializeApp(config);
+console.log(firebase.app().name);  // "[DEFAULT]"
+
+var defaultDatabase = defaultApp.database(); 
+
+
+
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    	var logindiv = document.getElementById('login');
+		var chatdiv = document.getElementById('chat');
+		logindiv.style.display = 'none';
+		chatdiv.style.display = 'block';
+		document.getElementById('user').innerHTML = firebase.auth().currentUser.email;
+		readData();
+  }else{
+  		var logindiv = document.getElementById('login');
+		var chatdiv = document.getElementById('chat');
+		logindiv.style.display = 'block';
+		chatdiv.style.display = 'none';
+  }
+});
+
+function register(){
+	firebase.auth().createUserWithEmailAndPassword(email.value, password.value).then(function(success){
+		alert("account has been created");
+	}).catch(function(error) {
+		// Handle Errors here.
+		alert("email has already been used");
+		var errorCode = error.code;
+		var errorMessage = error.message;
+		// ...
+	});
+}
+
+function login(){
+	firebase.auth().signInWithEmailAndPassword(email.value, password.value).then(function(success){
+		var logindiv = document.getElementById('login');
+		var chatdiv = document.getElementById('chat');
+		logindiv.style.display = 'none';
+		chatdiv.style.display = 'block';
+		alert("your are now logged in");
+		readData();
+	}).catch(function(error) {
+	  // Handle Errors here.
+	  alert("password is incorrect");
+	  var errorCode = error.code;
+	  var errorMessage = error.message;
+	  // ...
+	});
+}
+
+function logout(){
+	firebase.auth().signOut().then(function() {
+	  var logindiv = document.getElementById('login');
+	  var chatdiv = document.getElementById('chat');
+	  logindiv.style.display = 'block';
+	  chatdiv.style.display = 'none';
+	  alert("you have been logged out.");
+	}).catch(function(error) {
+	  // An error happened.
+	});
+}
+
+function readData(){
+	var database = firebase.database();
+	var userId = firebase.auth().currentUser.uid;
+	var email = firebase.auth().currentUser.email;
+	var update = firebase.database().ref('/messages');
+	update.on('value', function(snapshot) {
+	  var messages = snapshot.val();
+	  var length = Object.keys(messages).length;
+	  var div = document.getElementById('chatbox');
+	  div.innerHTML = "";
+	  for (var key in messages) {
+	  	var current = messages[key].email;
+	  	if(messages[key].email == firebase.auth().currentUser.email){
+			current = "Me"
+	  	}
+		div.innerHTML += '<div class="row"><strong>' + current + ':</strong><br><span>' + messages[key].message +'</span></div>';
+	  }
+	});
+}
+
+function sendMessage() {
+
+	var message = document.getElementById("message").value
+
+	firebase.database().ref('/messages').push({
+		date: new Date(),
+		message: message,
+		email: firebase.auth().currentUser.email
+	});
+
+	document.getElementById("message").value = "";
+
+}
+</script>
+</html>
